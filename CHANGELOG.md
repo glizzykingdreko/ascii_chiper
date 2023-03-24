@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.1] - 2023-03-22
+### Added
+- Added the possibility to encrypt/decrypt by passing directly an encryption key (+ added examples).
+- Added "reverse" as an encryption and decryption method.
+- Improved docs.
+
+### Changed
+
+### Fixed
+- Fixed swap reverse.
+
+### Removed
+
 ## [0.1.0] - 2023-03-22
 ### Added
 - Initial implementation of `ascii_chiper`.

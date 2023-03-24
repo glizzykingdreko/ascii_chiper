@@ -19,6 +19,22 @@ This module is designed to be simple and easy to use. To get started, import the
 
 The `encrypt` method takes the data to be encrypted, a base key, a length, and an encryption configuration as input. You can use one of the predefined encryption configurations or create your own custom configuration. The `decrypt` method requires the encrypted data, base key, length, and the same encryption configuration used during encryption.
 
+### Hello World
+```python
+from ascii_chiper import Chiper
+
+# Initialize the Chiper
+chiper = Chiper(123)
+
+encrypted = chiper.encrypt("Hello World!", 113, 40, Chiper.BASIC_SWAP_INTERLEAVE)
+print(f"Encrypted: {encrypted}")
+# Output 'xSJJSHNlQWyubF1vDyClV7RvfnKobCZkzyGUIg=='
+
+decrypted = chiper.decrypt(encrypted)
+print(f"Decrypted: {decrypted}")
+# Output 'Hello World!'
+```
+
 ### Basic usage
 ```python
 from ascii_chiper import Chiper
@@ -98,6 +114,32 @@ print("Original message:", message)
 print("Encrypted message:", encrypted_message)
 print("Decrypted message:", decrypted_message)
 ```
+
+### Decrypt message by knowing key and steps
+```python
+from ascii_chiper import Chiper, EncryptionModel, DecryptionModel
+
+# Decrypt a message using a custom encryption configuration
+encrypted = "2tqBEWERKhGjI3qxKsFLuaMbWhNaybG5s5IqkmrKapJyyypDm6IqklrBmrlrWSq5WyuBkmrKymJqoZoTarErYqOBG6l6yyoiaqLKkqOqOhNaU3paq9ObE5ODKpqTy1pSq4taQ2Oxm1qryyvDe4NrC0q6qwtbWYGLMpIqYnILW9ObyxtiY5FKU3KhaoOrgavTq8taoptZEZJh6hHaEYkRYSMqsaPBerkqG0sTo8lauVqSsZKzyiqSastqQ3KiKpKbwSq5WlmauWsrKpJbmoFTq8F7InqiK1NqksoTMqIqYlLDehOLg0u5e7kqUmKLgYuby1pag5p7g6uTKwtqupsLWqmri1tDOoNCIyrTMsuaU6upG1NyoRqDcstq03qaC2KjuVqSm1lb6ZvqEdphCxGDg0tjCxtLo3N7g3kzI2ERKhGjI3qxKsFLuaMbWhNaybG5s5IqkmrKapJyyypDm6IqklrBmrlrWSq5WyuBkmrKymJqoZoTarErYqOBG6l6yyoiaqLKkqOqOhNaU3paq9ObE5ODKpqTy1pSq4taQ2Oxm1qryyvDe4NrC0q6qwtbWYGLMpIqYnILW9ObyxtiY5FKU3KhaoOrgavTq8taoptZEZJh6hHaK6Ojw4N5MyNhESoRoyN6sSrBS7mjG1oTWsmxubOSKpJqymqScssqQ5uiKpJawZq5a1kquVsrgZKrmntTesErImqiylMykioTUqJ6YovDSxN7gyq5YrmBUpuLWouDy3taq5org2qTmwtauqsLW6k6i0JDKoMyI5rTq8sbU3KpGlNyoWqDessL06OaWmKbuVuSm1kR6erq"
+used_encrypt_steps={
+    "swap": {},
+    "xor_shift": {}
+}
+used_key = [114,114]
+excepted_output = [["0","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0YMLY4MbS6MLe0t5cyODETMRYUtbGjKKOzubsprSEyrJKquhK6lKsyuxepoamWIau+kq0RFLEaNzkysLc2ljI4NpM0uzuyuTK+sR"],["1","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0Sujo8ODeTMjYRFbETJLOxqbipo7E7LJ0qsqKypKoSuperMasWKau5kqGhHpEdFzSyujc5NjC4NpMyOzaStLK7sRk+s="],["application/pdf","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0YMLY4MbS6MLe0t5cyODETMRYUtbGjKKOzubsprSEyrJKquhK6lKsyuxepoamWIau+kq0RFLEaNzkysLc2ljI4NpM0uzuyuTK+sR"],["text/pdf","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0Sujo8ODeTMjYRFbETJLOxqbipo7E7LJ0qsqKypKoSuperMasWKau5kqGhHpEdFzSyujc5NjC4NpMyOzaStLK7sRk+s="]]
+
+# Create the EncryptionModel
+enc_model = EncryptionModel(0, 0, encrypt_steps=used_encrypt_steps)
+
+# Initialize the Chiper
+chiper = Chiper.initialize()
+
+# Decrypt the encrypted message
+decrypted_message = chiper.decrypt(encrypted, key=used_key, decrypt_steps=DecryptionModel.from_encryption_model(enc_model).decrypt_steps)
+print("Decrypted message:", decrypted_message)
+print(f"Decrypted message is equal to excepted output: {decrypted_message == excepted_output}")
+# Have fun :P those looks like some mime_types encrypted
+```
 For other examples usages, please refer to the Examples folder.
 
 ## Encryption Methods
@@ -106,6 +148,7 @@ For other examples usages, please refer to the Examples folder.
 
 | Name            | Description                                          | Optional Parameters                 |
 |-----------------|------------------------------------------------------|-------------------------------------|
+| reverse         | Reverse the input data.                              |                                     |
 | swap            | Swaps pairs of characters in the input data.         |                                     |
 | rotate          | Rotates the input data by a specified index from the key. | Index from key to use           |
 | interleave      | Interleaves the input data, effectively rearranging the characters. |                             |

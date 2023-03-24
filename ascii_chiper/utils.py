@@ -77,7 +77,7 @@ def swap_back(ascii_list: List[int]) -> List[int]:
     Returns:
         A new list with every two adjacent elements swapped back.
     """
-    return [ascii_list[i-1] if i % 2 == 1 else ascii_list[i+1] for i in range(len(ascii_list) - 1)] + [ascii_list[-1] if len(ascii_list) % 2 == 1 else []]
+    return swap(ascii_list)
 
 def xor_shift(ascii_list: List[int], key: List[int], n: int=0) -> List[int]: 
     """
@@ -163,12 +163,12 @@ def unrotate(ascii_list: List[int], key: List[int], n: int) -> List[int]:
     """
     return [ascii_list[(i - key[n] + len(ascii_list)) % len(ascii_list)] for i in range(len(ascii_list))]
 
-def xor_base(ft: List[int], key: List[int], base: int, start_idx: int, end_idx: int) -> List[int]:
+def xor_base(ascii_list: List[int], key: List[int], base: int, start_idx: int, end_idx: int) -> List[int]:
     """
     Applies a sequence of XOR operations on a list of ASCII values using a base value and a key.
 
     Args:
-        ft: The list of ASCII values to transform.
+        ascii_list: The list of ASCII values to transform.
         key: The list of integers to XOR with each value in `ft`.
         base: The initial value to XOR with the first element in `ft`.
         start_idx: The index of the key to start using for XOR operations.
@@ -179,18 +179,18 @@ def xor_base(ft: List[int], key: List[int], base: int, start_idx: int, end_idx: 
     """
     key_len = len(key[start_idx:end_idx])
     final = []
-    for i in range(len(ft)):
-        xor = ft[i] ^ key[start_idx:end_idx][i % key_len] ^ base
+    for i in range(len(ascii_list)):
+        xor = ascii_list[i] ^ key[start_idx:end_idx][i % key_len] ^ base
         final.append(xor)
         base = xor
     return final
 
-def unxor_base(ft: List[int], key: List[int], base: int, start_idx: int, end_idx: int) -> List[int]:
+def unxor_base(ascii_list: List[int], key: List[int], base: int, start_idx: int, end_idx: int) -> List[int]:
     """
     Reverses the sequence of XOR operations on a list of ASCII values using a base value and a key.
 
     Args:
-        ft: The list of transformed ASCII values to transform back to the original order.
+        ascii_list: The list of transformed ASCII values to transform back to the original order.
         key: The list of integers used to XOR with each value in `ft`.
         base: The initial value used to XOR with the first element in `ft`.
         start_idx: The index of the key to start using for XOR operations.
@@ -202,18 +202,18 @@ def unxor_base(ft: List[int], key: List[int], base: int, start_idx: int, end_idx
     key_len = len(key[start_idx:end_idx])
     final = []
     prev_xor = base
-    for i in range(len(ft)):
-        xor = ft[i] ^ key[start_idx:end_idx][i % key_len] ^ prev_xor
+    for i in range(len(ascii_list)):
+        xor = ascii_list[i] ^ key[start_idx:end_idx][i % key_len] ^ prev_xor
         final.append(xor)
-        prev_xor = ft[i]
+        prev_xor = ascii_list[i]
     return final
 
-def xor_add(ft: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
+def xor_add(ascii_list: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
     """
     Applies a sequence of addition and XOR operations on a list of ASCII values using a key.
 
     Args:
-        ft: The list of ASCII values to transform.
+        ascii_list: The list of ASCII values to transform.
         key: The list of integers to use for addition and XOR operations.
         start_idx: The index of the key to start using for operations.
         end_idx: The index of the key to stop using for operations.
@@ -221,21 +221,21 @@ def xor_add(ft: List[int], key: List[int], start_idx: int, end_idx: int) -> List
     Returns:
         A new list of transformed ASCII values.
     """
-    ft_len = len(ft)
+    ft_len = len(ascii_list)
     key_len = len(key[start_idx:end_idx])
     transformed_values = []
     for i in range(ft_len):
-        value = ft[i]
+        value = ascii_list[i]
         key_value = key[start_idx:end_idx][i % key_len] & 127
         transformed_values.append((value + key_value) % 256 ^ 128)
     return transformed_values
 
-def xor_unadd(ft: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
+def xor_unadd(ascii_list: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
     """
     Reverses the sequence of addition and XOR operations on a list of ASCII values using a key.
 
     Args:
-        ft: The list of transformed ASCII values to transform back to the original order.
+        ascii_list: The list of transformed ASCII values to transform back to the original order.
         key: The list of integers used for addition and XOR operations.
         start_idx: The index of the key to start using for operations.
         end_idx: The index of the key to stop using for operations.
@@ -243,22 +243,22 @@ def xor_unadd(ft: List[int], key: List[int], start_idx: int, end_idx: int) -> Li
     Returns:
         A new list of ASCII values in the original order.
     """
-    ft_len = len(ft)
+    ft_len = len(ascii_list)
     key_len = len(key[start_idx:end_idx])
     original_values = []
     for i in range(ft_len):
-        value = ft[i]
+        value = ascii_list[i]
         key_value = key[start_idx:end_idx][i % key_len] & 127
         original_values.append((value ^ 128) - key_value % 256)
     return original_values
 
-def interleave_key(ft: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
+def interleave_key(ascii_list: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
     """
     Interleaves a list of ASCII values with corresponding key values.
 
     Args:
-        ft: The list of ASCII values to interleave.
-        key: The list of integers to interleave with `ft`.
+        ascii_list: The list of ASCII values to interleave.
+        key: The list of integers to interleave with `ascii_list`.
         start_idx: The index of the key to start using for interleaving.
         end_idx: The index of the key to stop using for interleaving.
 
@@ -267,18 +267,18 @@ def interleave_key(ft: List[int], key: List[int], start_idx: int, end_idx: int) 
     """
     key_len = len(key[start_idx:end_idx])
     interleaved_list = []
-    for i, value in enumerate(ft):
+    for i, value in enumerate(ascii_list):
         interleaved_list.append(value)
         interleaved_list.append(key[start_idx:end_idx][i % key_len])
     return interleaved_list
 
-def deinterleave_key(interleaved_list: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
+def deinterleave_key(ascii_list: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
     """
     Deinterleaves a list of ASCII values and key values.
 
     Args:
-        interleaved_list: The list of interleaved ASCII values and key values to transform back to the original order.
-        key: The list of integers used to interleave with `ft`.
+        ascii_list: The list of interleaved ASCII values and key values to transform back to the original order.
+        key: The list of integers used to interleave with `ascii_list`.
         start_idx: The index of the key to start using for deinterleaving.
         end_idx: The index of the key to stop using for deinterleaving.
 
@@ -287,9 +287,21 @@ def deinterleave_key(interleaved_list: List[int], key: List[int], start_idx: int
     """
     _ = len(key[start_idx:end_idx])
     original_list = []
-    for i in range(0, len(interleaved_list), 2):
-        original_list.append(interleaved_list[i])
+    for i in range(0, len(ascii_list), 2):
+        original_list.append(ascii_list[i])
     return original_list
+
+def reverse(ascii_list: List[int]) -> List[int]:
+    """
+    Reverses a list of ASCII values.
+
+    Args:
+        ascii_list: The list of ASCII values to reverse.
+
+    Returns:
+        A new list of ASCII values in the reverse order.
+    """
+    return ascii_list[::-1]
 
 OPPOSITE_ENCRYPTION_FUNCTIONS = {
     'swap': swap_back,
@@ -305,7 +317,8 @@ OPPOSITE_ENCRYPTION_FUNCTIONS = {
     'xor_add': xor_unadd,
     'xor_unadd': xor_add,
     'interleave_key': deinterleave_key,
-    'deinterleave_key': interleave_key
+    'deinterleave_key': interleave_key,
+    'reverse': reverse,
 }
 
 def clean_input(string: str) -> str:

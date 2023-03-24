@@ -1,4 +1,4 @@
-from typing import Dict, Union, Any
+from typing import Dict, Union, Any, List
 
 from .key_generator import KeyGenerator
 from .exceptions import InvalidKeyException, InvalidModeException, \
@@ -8,7 +8,7 @@ from .models import DecryptionModel, EncryptionModel
 from .utils import swap_back, swap, xor_unshift, xor_shift, \
     deinterleave, interleave, unrotate, rotate, unxor_base, xor_base, xor_unadd, xor_add, \
         deinterleave_key, interleave_key, string_to_ascii, ascii_to_string, ascii_to_base64, \
-            base64_to_ascii, clean_input, revert_clean_input
+            base64_to_ascii, clean_input, revert_clean_input, reverse
 
 class Chiper:
     """Encrypts and decrypts messages using a key"""
@@ -40,6 +40,7 @@ class Chiper:
         "rotate": {"index": 0},
         "xor_base": {"base": 113, "start": 0},
         "interleave_key": {"start": 0},
+        "reverse": {},
     }
 
     @staticmethod
@@ -70,18 +71,38 @@ class Chiper:
             self.lenght, self.used_key, self.decrypt_model= \
                 seed, False, "", 0, 0, [], False
 
-    def encrypt(self, message: Union[str, dict, int]=False, base: int=False, lenght: int=0, encrypt_steps: Dict[str, Any]=False, model: EncryptionModel=False) -> str:
-        """Encrypts a message using a key and a set of steps or a model.
+    def encrypt(
+        self, 
+        message: Union[str, dict, int]=False, 
+        base: int=False, 
+        lenght: int=0, 
+        encrypt_steps: Dict[str, Any]=False, 
+        model: EncryptionModel=False,
+        key: List[int]=False,
+    ) -> str:
+        """
+        ### Encrypts a message using a key and a set of steps or a model.
 
         Args:
-            message (Union[str, dict, int]): The message to encrypt. Default is False.
-            base (int): The base for key generation. Default is False.
-            lenght (int): The length of the key. Default is 0.
-            encrypt_steps (Dict[str, Any]): The steps to use for encryption. Default is False.
-            model (EncryptionModel): The model to use for encryption. Default is False.
-
+            `message` (Union[str, dict, int]): The message to encrypt. Default is False.
+            `base` (int): The base for key generation. Default is False.
+            `lenght` (int): The length of the key. Default is 0.
+            `encrypt_steps` (Dict[str, Any]): The steps to use for encryption. Default is False.
+            `model` (EncryptionModel): The model to use for encryption. Default is False.
+            `key` (List[int]): The key to use for encryption. Default is False. If False, a key will be generated.
+        
         Returns:
             str: The encrypted message.
+
+        Raises:
+            InvalidModeException: If the mode is invalid or missing/invalid arguments.
+            InvalidKeyInputException: If the key input is invalid.
+        
+        Examples:
+            >>> from ascii_chiper import Chiper
+            >>> chiper = Chiper(123)
+            >>> chiper.encrypt("Hello World!", 113, 40, Chiper.BASIC_SWAP_INTERLEAVE)
+            'xSJJSHNlQWyubF1vDyClV7RvfnKobCZkzyGUIg=='
         """
         try:
             if not message:
@@ -93,17 +114,21 @@ class Chiper:
             elif not encrypt_steps or not base or not lenght:
                 if self.decrypt_model:
                     base, lenght, encrypt_steps = EncryptionModel.from_decryption_model(self.decrypt_model)()
-                else: raise ValueError("Missing arguments")
+                elif not key:
+                    raise ValueError("Missing arguments")
         except: raise InvalidModeException("Invalid mode or missing/invalid arguments")
-        try: key = KeyGenerator(self.seed).create_key(base, lenght)
-        except: raise InvalidKeyInputException("Invalid key input")
+        if not key:
+            try: key = KeyGenerator(self.seed).create_key(base, lenght)
+            except: raise InvalidKeyInputException("Invalid key input")
         try:
             self.encryption_model = EncryptionModel(base, lenght, encrypt_steps)
             ascii_list = string_to_ascii(clean_input(message))
             for step_name, step_params in encrypt_steps.items():
                 index, start, end, base = step_params.get('index', 0), step_params.get('start', 0), \
                     step_params.get('end', len(key)), step_params.get('base', 113)
-                if step_name == 'swap':
+                if step_name == 'reverse':
+                    ascii_list = reverse(ascii_list)
+                elif step_name == 'swap':
                     ascii_list = swap(ascii_list)
                 elif step_name == 'xor_shift':
                     if index < 0 or index > len(key):
@@ -145,18 +170,39 @@ class Chiper:
             raise EncryptionException("Encryption failed")
         
 
-    def decrypt(self, message: str=False, base: int=False, lenght: int=0, decrypt_steps: Dict[str, Any]=False, model: DecryptionModel=False) -> Union[str, dict, int]:
-        """Decrypts a message using a key and a set of steps or a model.
+    def decrypt(
+        self, message: 
+        str=False, 
+        base: int=False, 
+        lenght: int=0,
+        decrypt_steps: Dict[str, Any]=False, 
+        model: DecryptionModel=False,
+        key: List[int]=False
+    ) -> Union[str, dict, int]:
+        """
+        ### Decrypts a message using a key and a set of steps or a model.
 
         Args:
-            message (str): The message to decrypt. Default is False.
-            base (int): The base for key generation. Default is False.
-            lenght (int): The length of the key. Default is 0.
-            decrypt_steps (Dict[str, Any]): The steps to use for decryption. Default is False.
-            model (DecryptionModel): The model to use for decryption. Default is False.
-
+            `message` (str): The message to decrypt. Default is False.
+            `base` (int): The base for key generation. Default is False.
+            `lenght` (int): The length of the key. Default is 0.
+            `decrypt_steps` (Dict[str, Any]): The steps to use for decryption. Default is False.
+            `model` (DecryptionModel): The model to use for decryption. Default is False.
+            `key` (List[int]): The key to use for decryption. Default is False. If False, a key will be generated.
+        
         Returns:
             The decrypted message.
+        
+        Raises:
+            InvalidModeException: If the mode is invalid or missing/invalid arguments.
+            InvalidKeyInputException: If the key input is invalid.
+        
+        Examples:
+            >>> from ascii_chiper import Chiper
+            >>> chiper = Chiper(123)
+            >>> encrypted = chiper.encrypt("Hello World!", 113, 40, Chiper.BASIC_SWAP_INTERLEAVE)
+            >>> chiper.decrypt(encrypted)
+            'Hello World!'
         """
         try:
             if not message:
@@ -168,10 +214,12 @@ class Chiper:
             elif not decrypt_steps or not base or not lenght:
                 if self.encryption_model:
                     base, lenght, decrypt_steps = DecryptionModel.from_encryption_model(self.encryption_model)()
-                else: raise ValueError("Missing arguments")
+                elif not key:
+                    raise ValueError("Missing arguments")
         except: raise InvalidModeException("Invalid mode or missing/invalid arguments")
-        try: key = KeyGenerator(self.seed).create_key(base, lenght)
-        except: raise InvalidKeyInputException("Invalid key input")
+        if not key:
+            try: key = KeyGenerator(self.seed).create_key(base, lenght)
+            except: raise InvalidKeyInputException("Invalid key input")
         decrypt_steps = {k: value for k, value in reversed(decrypt_steps.items())}
         try:
             self.decrypt_model = DecryptionModel(base, lenght, decrypt_steps)
@@ -179,7 +227,9 @@ class Chiper:
             for step_name, step_params in decrypt_steps.items():
                 index, start, end, base = step_params.get('index', 0), step_params.get('start', 0), \
                     step_params.get('end', len(key)), step_params.get('base', 113)
-                if step_name == 'swap_back':
+                if step_name == 'reverse':
+                    ascii_list = reverse(ascii_list)
+                elif step_name == 'swap_back':
                     ascii_list = swap_back(ascii_list)
                 elif step_name == 'xor_unshift':
                     if index < 0 or index > len(key):
