@@ -2,11 +2,11 @@ from ascii_chiper import Chiper, KeyGenerator, \
     EncryptionModel, DecryptionModel
 
 # Custom encryption configuration
-custom_config = {
-    "interleave": {},
-    "rotate": {"index": 2},
-    "xor_add": {"start": 0},
-}
+custom_config = [
+    {"interleave": {}},
+    {"rotate": {"index": 2}},
+    {"xor_add": {"start": 0}},
+]
 
 # Create an encryption seed and model
 seed = KeyGenerator.generate_seed()

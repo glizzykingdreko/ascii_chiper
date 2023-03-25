@@ -2,18 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
-
-## [0.1.1] - 2023-03-22
+## [0.1.2] - 2023-03-25
 ### Added
-- Added the possibility to encrypt/decrypt by passing directly an encryption key (+ added examples).
+- Added optional start and end key arguments for the Interleave encryption method.
+- Support for lambda functions in the encryption/decryption steps options (index/start/end). The key length will be passed as an argument.
+- Added premade lambda functions: `Chiper.PENULTIMATE_OF_KE`Y and `Chiper.MIDDLE_OF_KEY`.
+- Implemented type checking for input parameters.
+
+### Changed
+- Modified the encrypt/decrypt steps from `Dict[str, dict]` to `List[Dict[str, dict]]` to support using the same encryption method multiple times in the sequence.
+
+### Fixed
+
+### Removed
+
+## [0.1.1] - 2023-03-23
+### Added
+- Added the possibility to encrypt/decrypt by passing an encryption key directly.
 - Added "reverse" as an encryption and decryption method.
-- Improved docs.
+- Improved documentation.
 
 ### Changed
 
 ### Fixed
-- Fixed swap reverse.
+- Fixed swap reverse issue.
 
 ### Removed
 

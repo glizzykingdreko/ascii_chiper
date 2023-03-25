@@ -109,7 +109,7 @@ def xor_unshift(ascii_list: List[int], key: List[int], n: int=0) -> List[int]:
     shift = key[n] % 7 + 1
     return [(c >> shift | c << 8 - shift) & 255 for c in ascii_list]
 
-def interleave(ascii_list: List[int], key: List[int]) -> List[int]: 
+def interleave(ascii_list: List[int], key: int, start: List[int], end: int) -> List[int]: 
     """
     Interleaves two lists of ASCII values by taking one value from each list at a time.
 
@@ -117,10 +117,11 @@ def interleave(ascii_list: List[int], key: List[int]) -> List[int]:
         ascii_list: The first list of ASCII values to interleave.
         key: The second list of ASCII values to interleave.
 
+
     Returns:
         A new list of interleaved ASCII values.
     """
-    return [val for pair in zip(ascii_list, key) for val in pair]
+    return [val for pair in zip(ascii_list, key[start:end]) for val in pair]
 
 def deinterleave(interleaved_list: List[int], key: List[int]) -> List[int]:
     """

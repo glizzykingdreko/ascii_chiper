@@ -65,12 +65,12 @@ chiper = Chiper.initialize()
 # Encrypt a message using a custom encryption configuration
 message = "A custom encryption example."
 base, length = 987654321, 92
-custom_config = {
-    "interleave": {},
-    "swap": {},
-    "rotate": {"index": 5},
-    "xor_base": {"base": 137, "start": 0},
-}
+custom_config = [
+    {"interleave": {}},
+    {"swap": {}},
+    {"rotate": {"index": 5}},
+    {"xor_base": {"base": 137, "start": 0}},
+]
 
 encrypted_message = chiper.encrypt(message, base, length, encrypt_steps=custom_config)
 
@@ -89,11 +89,11 @@ from ascii_chiper import Chiper, KeyGenerator, \
     EncryptionModel, DecryptionModel
 
 # Custom encryption configuration
-custom_config = {
-    "interleave": {},
-    "rotate": {"index": 2},
-    "xor_add": {"start": 0},
-}
+custom_config = [
+    {"interleave": {}},
+    {"rotate": {"index": 2}},
+    {"xor_add": {"start": 0}},
+]
 
 # Create an encryption seed and model
 seed = KeyGenerator.generate_seed()
@@ -115,16 +115,52 @@ print("Encrypted message:", encrypted_message)
 print("Decrypted message:", decrypted_message)
 ```
 
+### Custom configuration with lambda functions
+```python
+from ascii_chiper import Chiper, EncryptionModel, DecryptionModel
+
+# Initialize the Chiper
+chiper = Chiper.initialize()
+
+# Encrypt a message using a custom encryption configuration
+message = "A custom encryption example."
+base, length = 987654321, 92
+custom_config = [
+    {"swap": {}},
+    {"rotate": {
+        # We can use a lambda function to define the index
+        # the len of the key is passed as the first argument
+        "index": lambda key: key % 5,
+    }},
+    {"xor_base": {
+        "base": 137,
+        # We can use predefined functions as well
+        "start": Chiper.MIDDLE_OF_KEY,
+        "end": Chiper.PENULTIMATE_OF_KEY,
+    }},
+]
+
+encrypted_message = chiper.encrypt(message, base, length, encrypt_steps=custom_config)
+
+# Decrypt the encrypted message using a DecryptionModel
+decryption_model = DecryptionModel.from_encryption_model(EncryptionModel(base, length, custom_config))
+decrypted_message = chiper.decrypt(encrypted_message, model=decryption_model)
+
+print("Original message:", message)
+print("Encrypted message:", encrypted_message)
+print("Decrypted message:", decrypted_message)
+```
+
 ### Decrypt message by knowing key and steps
 ```python
 from ascii_chiper import Chiper, EncryptionModel, DecryptionModel
 
 # Decrypt a message using a custom encryption configuration
 encrypted = "2tqBEWERKhGjI3qxKsFLuaMbWhNaybG5s5IqkmrKapJyyypDm6IqklrBmrlrWSq5WyuBkmrKymJqoZoTarErYqOBG6l6yyoiaqLKkqOqOhNaU3paq9ObE5ODKpqTy1pSq4taQ2Oxm1qryyvDe4NrC0q6qwtbWYGLMpIqYnILW9ObyxtiY5FKU3KhaoOrgavTq8taoptZEZJh6hHaEYkRYSMqsaPBerkqG0sTo8lauVqSsZKzyiqSastqQ3KiKpKbwSq5WlmauWsrKpJbmoFTq8F7InqiK1NqksoTMqIqYlLDehOLg0u5e7kqUmKLgYuby1pag5p7g6uTKwtqupsLWqmri1tDOoNCIyrTMsuaU6upG1NyoRqDcstq03qaC2KjuVqSm1lb6ZvqEdphCxGDg0tjCxtLo3N7g3kzI2ERKhGjI3qxKsFLuaMbWhNaybG5s5IqkmrKapJyyypDm6IqklrBmrlrWSq5WyuBkmrKymJqoZoTarErYqOBG6l6yyoiaqLKkqOqOhNaU3paq9ObE5ODKpqTy1pSq4taQ2Oxm1qryyvDe4NrC0q6qwtbWYGLMpIqYnILW9ObyxtiY5FKU3KhaoOrgavTq8taoptZEZJh6hHaK6Ojw4N5MyNhESoRoyN6sSrBS7mjG1oTWsmxubOSKpJqymqScssqQ5uiKpJawZq5a1kquVsrgZKrmntTesErImqiylMykioTUqJ6YovDSxN7gyq5YrmBUpuLWouDy3taq5org2qTmwtauqsLW6k6i0JDKoMyI5rTq8sbU3KpGlNyoWqDessL06OaWmKbuVuSm1kR6erq"
-used_encrypt_steps={
-    "swap": {},
-    "xor_shift": {}
-}
+used_encrypt_steps = [
+    {"swap": {}},
+    {"xor_shift": {}}
+]
 used_key = [114,114]
 excepted_output = [["0","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0YMLY4MbS6MLe0t5cyODETMRYUtbGjKKOzubsprSEyrJKquhK6lKsyuxepoamWIau+kq0RFLEaNzkysLc2ljI4NpM0uzuyuTK+sR"],["1","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0Sujo8ODeTMjYRFbETJLOxqbipo7E7LJ0qsqKypKoSuperMasWKau5kqGhHpEdFzSyujc5NjC4NpMyOzaStLK7sRk+s="],["application/pdf","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0YMLY4MbS6MLe0t5cyODETMRYUtbGjKKOzubsprSEyrJKquhK6lKsyuxepoamWIau+kq0RFLEaNzkysLc2ljI4NpM0uzuyuTK+sR"],["text/pdf","Edt6O8E7ictbK9K76RvREYMRMyNhETsRE8K7S+m7EekR0Sujo8ODeTMjYRFbETJLOxqbipo7E7LJ0qsqKypKoSuperMasWKau5kqGhHpEdFzSyujc5NjC4NpMyOzaStLK7sRk+s="]]
 
@@ -151,7 +187,7 @@ For other examples usages, please refer to the Examples folder.
 | reverse         | Reverse the input data.                              |                                     |
 | swap            | Swaps pairs of characters in the input data.         |                                     |
 | rotate          | Rotates the input data by a specified index from the key. | Index from key to use           |
-| interleave      | Interleaves the input data, effectively rearranging the characters. |                             |
+| interleave      | Interleaves the input data, effectively rearranging the characters. | key start/end                 |
 | interleave_key  | Interleaves the input data based on the key start and end positions. | key start/end                 |
 | xor_shift       | Applies an XOR shift operation using a specified index from the key. | index of key to use           |
 | xor_base        | Performs XOR operation on the input data using the base and the key start and end positions. | base to use, start/end key to use |

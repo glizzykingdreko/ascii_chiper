@@ -7,10 +7,17 @@ chiper = Chiper.initialize()
 message = "A custom encryption example."
 base, length = 987654321, 92
 custom_config = [
-    {"interleave": {}},
     {"swap": {}},
-    {"rotate": {"index": 5}},
-    {"xor_base": {"base": 137, "start": 0}},
+    {"rotate": {
+        # We can use a lambda function to define the index
+        # the len of the key is passed as the first argument
+        "index": lambda key: key % 5,
+    }},
+    {"xor_base": {
+        "base": 137, 
+        "start": Chiper.MIDDLE_OF_KEY,
+        "end": Chiper.PENULTIMATE_OF_KEY,
+    }},
 ]
 
 encrypted_message = chiper.encrypt(message, base, length, encrypt_steps=custom_config)

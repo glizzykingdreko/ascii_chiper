@@ -17,10 +17,11 @@ class DecryptionModel:
             DecryptionModel: The decryption model.
         """
         try:
-            new_steps = {}
-            for key, value in model.encrypt_steps.items():
+            new_steps = []
+            for d in model.encrypt_steps:
+                key, value = next(iter(d.items()))
                 if not key in list(OPPOSITE_ENCRYPTION_FUNCTIONS): continue
-                new_steps[OPPOSITE_ENCRYPTION_FUNCTIONS[key].__name__] = value
+                new_steps.append({OPPOSITE_ENCRYPTION_FUNCTIONS[key].__name__: value})
             return DecryptionModel(model.base, model.lenght, new_steps)
         except Exception as e:
             raise InvalidModelException(f"Invalid model: {e}")
@@ -47,10 +48,11 @@ class EncryptionModel:
             EncryptionModel: The encryption model.
         """
         try:
-            new_steps = {}
-            for key, value in model.encrypt_steps.items():
+            new_steps = []
+            for d in model.encrypt_steps:
+                key, value = next(iter(d.items()))
                 if not key in list(OPPOSITE_ENCRYPTION_FUNCTIONS): continue
-                new_steps[OPPOSITE_ENCRYPTION_FUNCTIONS[key].__name__] = value
+                new_steps.append({OPPOSITE_ENCRYPTION_FUNCTIONS[key].__name__: value})
             return EncryptionModel(model.base, model.lenght, new_steps)
         except Exception as e:
             raise InvalidModelException(f"Invalid model: {e}")
