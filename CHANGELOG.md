@@ -2,11 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2023-03-25
+
+### Fixed
+
+- Fixed a minor issue to accept both floats and integers as input.
+
 ## [0.1.2] - 2023-03-25
+
 ### Added
 - Added optional start and end key arguments for the Interleave encryption method.
 - Support for lambda functions in the encryption/decryption steps options (index/start/end). The key length will be passed as an argument.
-- Added premade lambda functions: `Chiper.PENULTIMATE_OF_KE`Y and `Chiper.MIDDLE_OF_KEY`.
+- Added premade lambda functions: `Chiper.PENULTIMATE_OF_KEY` and `Chiper.MIDDLE_OF_KEY`.
 - Implemented type checking for input parameters.
 
 ### Changed

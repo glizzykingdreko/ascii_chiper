@@ -118,8 +118,8 @@ class Chiper:
         if not isinstance(steps, list) or not all(isinstance(step, dict) and isinstance(next(iter(step.keys())), str) and isinstance(next(iter(step.values())), dict) for step in steps):
             raise InvalidKeyInputException("Invalid steps input: steps must be a list of dictionaries in the format {str, dict}.")
         
-        if not isinstance(message, (str, int, dict, list)):
-            raise InvalidKeyInputException("Invalid message input: message must be a string, integer, or dictionary.")
+        if not isinstance(message, (str, int, dict, list, float)):
+            raise InvalidKeyInputException("Invalid message input: message must be a string, integer, float, list or dictionary.")
 
     def __init__(self, seed: int):
         self.seed, self.encryption_model, self.plain_text, self.base, \
