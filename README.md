@@ -1,5 +1,5 @@
 # ascii_chiper
-`ascii_chiper `is a Python module for encrypting and decrypting strings, integers, and dictionaries using various encryption techniques. The module provides user-friendly and customizable encryption configurations to suit different use cases and levels of security.
+`ascii_chiper` is a Python module for encrypting and decrypting strings, integers, and dictionaries using various encryption techniques. The module provides user-friendly and customizable encryption configurations to suit different use cases and levels of security.
 
 ## Features
 - Accepts strings, integers, floats, lists and dictionaries as input for encryption

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.4] - 2023-06-11
+
+### Added
+- Added `GeneratorHelper` to handle support for both MacOS and Raspberry Pi.
+
 ## [0.1.3] - 2023-03-25
 
 ### Fixed

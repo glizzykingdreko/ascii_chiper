@@ -1,10 +1,10 @@
-from numpy import int32
-from random import random
+from random import random, randint
 from typing import Any, List
 from warnings import simplefilter
 simplefilter("ignore", RuntimeWarning)
 
 from .exceptions import InvalidSeedInputException
+from .helpers import GeneratorHelper
 
 class KeyGenerator:
     """Generate key for encryption and decryption."""
@@ -16,9 +16,9 @@ class KeyGenerator:
         Returns:
             int: Seed for key generation.
         """
-        return int(random() * 1073741824)
+        return GeneratorHelper.generate_seed()
     
-    def __init__(self, seed=None):
+    def __init__(self, seed: int=None):
         if seed is None:
             seed = KeyGenerator.generate_seed()
         self.seed = seed
@@ -27,11 +27,11 @@ class KeyGenerator:
         """Generate xorshift function."""
         def inner_function():
             nonlocal key, shift
-            temp_key = int32(key)
-            temp_key ^= int32(temp_key << 23)
-            temp_key ^= int32(temp_key >> 17)
-            temp_key ^= int32(shift)
-            temp_key ^= int32(shift >> 26)
+            temp_key = GeneratorHelper.int32(key)
+            temp_key ^= GeneratorHelper.int32(temp_key << 23)
+            temp_key ^= GeneratorHelper.int32(temp_key >> 17)
+            temp_key ^= GeneratorHelper.int32(shift)
+            temp_key ^= GeneratorHelper.int32(shift >> 26)
             key, shift = shift, temp_key
             return (key + shift) % 0x100000000 
         return inner_function
