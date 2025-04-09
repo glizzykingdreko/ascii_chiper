@@ -1,7 +1,7 @@
 from typing import List
 from base64 import b64encode, b64decode
 from re import sub
-from json import dumps, loads
+from json import dumps, loads, JSONDecodeError
 
 def string_to_ascii(string: str, static_num: int = 0) -> List[int]:
     """
@@ -136,9 +136,10 @@ def deinterleave(interleaved_list: List[int], key: List[int]) -> List[int]:
     """
     return interleaved_list[::2]
 
-def rotate(ascii_list: List[int], key: List[int], n: int) -> List[int]: 
+def rotate(ascii_list: List[int], key: List[int], n: int) -> List[int]:
     """
-    Rotates a list of ASCII values by a given amount.
+    Performs a circular left bit rotation on each byte in the list.
+    Matches JavaScript: (byte << shift | byte >> (8 - shift)) & 255
 
     Args:
         ascii_list: The list of ASCII values to rotate.
@@ -148,21 +149,57 @@ def rotate(ascii_list: List[int], key: List[int], n: int) -> List[int]:
     Returns:
         A new list of rotated ASCII values.
     """
-    return [ascii_list[(i+key[n]) % len(ascii_list)] for i in range(len(ascii_list))]
+    shift = (key[n] % 7) + 1  # Same as JS: wC[0] % 7 + 1
+    return [((b << shift) | (b >> (8 - shift))) & 255 for b in ascii_list]
 
-def unrotate(ascii_list: List[int], key: List[int], n: int) -> List[int]: 
+def unrotate(ascii_list: List[int], key: List[int], n: int) -> List[int]:
     """
-    Reverses the rotation of a list of ASCII values by a given amount.
+    Reverses the circular bit rotation on each byte in the list.
 
     Args:
-        ascii_list: The list of rotated ASCII values to transform back to the original order.
+        ascii_list: The list of rotated ASCII values to transform back.
         key: The list of integers used as rotation offsets.
         n: The index of the key used for the rotation.
 
     Returns:
-        A new list of ASCII values in the original order.
+        A new list of ASCII values with reversed bit rotation.
     """
-    return [ascii_list[(i - key[n] + len(ascii_list)) % len(ascii_list)] for i in range(len(ascii_list))]
+    shift = (key[n] % 7) + 1  # Same as JS: wC[0] % 7 + 1
+    return [((b >> shift) | (b << (8 - shift))) & 255 for b in ascii_list]
+
+def circular_shift(ascii_list: List[int], key: List[int], n: int) -> List[int]:
+    """
+    Performs a circular array shift where each element is moved forward by key[n] positions.
+    Matches JavaScript: array[(index + key[n]) % array.length]
+
+    Args:
+        ascii_list: The list of ASCII values to shift.
+        key: The list of integers to use as shift amounts.
+        n: The index of the key to use for the shift amount.
+
+    Returns:
+        A new list with elements shifted circularly.
+    """
+    shift_amount = key[n] % len(ascii_list)  # Ensure shift amount is within array bounds
+    length = len(ascii_list)
+    return [ascii_list[(i + shift_amount) % length] for i in range(length)]
+
+def unshift(ascii_list: List[int], key: List[int], n: int) -> List[int]:
+    """
+    Reverses a circular array shift by moving elements backward.
+    Matches JavaScript: array[(index - key[n] + array.length) % array.length]
+
+    Args:
+        ascii_list: The list of shifted ASCII values to unshift.
+        key: The list of integers used as shift amounts.
+        n: The index of the key used for the shift amount.
+
+    Returns:
+        A new list with elements unshifted to their original positions.
+    """
+    shift_amount = key[n] % len(ascii_list)  # Ensure shift amount is within array bounds
+    length = len(ascii_list)
+    return [ascii_list[(i - shift_amount + length) % length] for i in range(length)]
 
 def xor_base(ascii_list: List[int], key: List[int], base: int, start_idx: int, end_idx: int) -> List[int]:
     """
@@ -178,12 +215,14 @@ def xor_base(ascii_list: List[int], key: List[int], base: int, start_idx: int, e
     Returns:
         A new list of transformed ASCII values.
     """
-    key_len = len(key[start_idx:end_idx])
+    key_slice = key[start_idx:end_idx]
+    key_len = len(key_slice)
     final = []
+    current_base = base
     for i in range(len(ascii_list)):
-        xor = ascii_list[i] ^ key[start_idx:end_idx][i % key_len] ^ base
+        xor = ascii_list[i] ^ key_slice[i % key_len] ^ current_base
         final.append(xor)
-        base = xor
+        current_base = xor
     return final
 
 def unxor_base(ascii_list: List[int], key: List[int], base: int, start_idx: int, end_idx: int) -> List[int]:
@@ -200,13 +239,14 @@ def unxor_base(ascii_list: List[int], key: List[int], base: int, start_idx: int,
     Returns:
         A new list of ASCII values in the original order.
     """
-    key_len = len(key[start_idx:end_idx])
+    key_slice = key[start_idx:end_idx]
+    key_len = len(key_slice)
     final = []
-    prev_xor = base
+    current_base = base
     for i in range(len(ascii_list)):
-        xor = ascii_list[i] ^ key[start_idx:end_idx][i % key_len] ^ prev_xor
+        xor = ascii_list[i] ^ key_slice[i % key_len] ^ current_base
         final.append(xor)
-        prev_xor = ascii_list[i]
+        current_base = ascii_list[i]  # Use the encrypted value as the next base
     return final
 
 def xor_add(ascii_list: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
@@ -250,7 +290,11 @@ def xor_unadd(ascii_list: List[int], key: List[int], start_idx: int, end_idx: in
     for i in range(ft_len):
         value = ascii_list[i]
         key_value = key[start_idx:end_idx][i % key_len] & 127
-        original_values.append((value ^ 128) - key_value % 256)
+        # First XOR with 128 to undo the last operation
+        unxored = value ^ 128
+        # Then subtract the key value and handle negative numbers with modulo
+        result = (unxored - key_value) % 256
+        original_values.append(result)
     return original_values
 
 def interleave_key(ascii_list: List[int], key: List[int], start_idx: int, end_idx: int) -> List[int]:
@@ -313,6 +357,8 @@ OPPOSITE_ENCRYPTION_FUNCTIONS = {
     'deinterleave': interleave,
     'rotate': unrotate,
     'unrotate': rotate,
+    'circular_shift': unshift,
+    'unshift': circular_shift,
     'xor_base': unxor_base,
     'unxor_base': xor_base,
     'xor_add': xor_unadd,
@@ -352,11 +398,53 @@ def revert_clean_input(cleaned_string: str) -> str:
     Returns:
         The original string.
     """
-    # Regular expression to match escaped Unicode characters
-    escaped_unicode_regex = r'\\u[0-9a-fA-F]{4}'
+    try:
+        # First try direct JSON parsing
+        return loads(cleaned_string)
+    except JSONDecodeError:
+        # If that fails, try to clean up the string
+        # Regular expression to match escaped Unicode characters
+        escaped_unicode_regex = r'\\u[0-9a-fA-F]{4}'
 
-    # Replace escaped Unicode characters with actual Unicode characters
-    unescaped_string = sub(escaped_unicode_regex, lambda m: chr(int(m.group(0)[2:], 16)), cleaned_string)
-
-    # Load the unescaped string as a JSON object to get the original string
-    return loads(unescaped_string)
+        # Replace escaped Unicode characters with actual Unicode characters
+        unescaped_string = sub(escaped_unicode_regex, lambda m: chr(int(m.group(0)[2:], 16)), cleaned_string)
+        
+        # Handle control characters and special characters
+        replacements = {
+            '\\n': '\n',
+            '\\r': '\r',
+            '\\t': '\t',
+            '\\b': '\b',
+            '\\f': '\f',
+            '\\"': '"',
+            "\\'": "'",
+            '\\\\': '\\',
+            '\\x0f': '\x0f',
+            '\\x7f': '\x7f',
+            '\\x12': '\x12',
+            '\\x10': '\x10',
+            '\\x05': '\x05',
+            '\\x1d': '\x1d',
+            '\\x16': '\x16',
+            '\\x14': '\x14',
+            '\\x04': '\x04'
+        }
+        
+        for old, new in replacements.items():
+            unescaped_string = unescaped_string.replace(old, new)
+        
+        try:
+            # Try to parse the cleaned string
+            return loads(unescaped_string)
+        except JSONDecodeError:
+            try:
+                # If that fails, try one more time after removing any remaining escapes
+                return loads(unescaped_string.replace('\\', ''))
+            except JSONDecodeError:
+                # If all parsing attempts fail, try to evaluate it as a Python literal
+                try:
+                    from ast import literal_eval
+                    return literal_eval(unescaped_string)
+                except:
+                    # If everything fails, return the cleaned string
+                    return unescaped_string

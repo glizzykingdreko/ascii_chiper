@@ -8,7 +8,7 @@ from .models import DecryptionModel, EncryptionModel
 from .utils import swap_back, swap, xor_unshift, xor_shift, \
     deinterleave, interleave, unrotate, rotate, unxor_base, xor_base, xor_unadd, xor_add, \
         deinterleave_key, interleave_key, string_to_ascii, ascii_to_string, ascii_to_base64, \
-            base64_to_ascii, clean_input, revert_clean_input, reverse
+            base64_to_ascii, clean_input, revert_clean_input, reverse, circular_shift, unshift
 
 class Chiper:
     """Encrypts and decrypts messages using a key"""
@@ -196,6 +196,8 @@ class Chiper:
                     ascii_list = reverse(ascii_list)
                 elif step_name == 'swap':
                     ascii_list = swap(ascii_list)
+                elif step_name == 'circular_shift':
+                    ascii_list = circular_shift(ascii_list, key, index)
                 elif step_name == 'xor_shift':
                     ascii_list = xor_shift(ascii_list, key, index)
                 elif step_name == 'rotate':
@@ -292,6 +294,8 @@ class Chiper:
                     ascii_list = reverse(ascii_list)
                 elif step_name == 'swap_back':
                     ascii_list = swap_back(ascii_list)
+                elif step_name == 'unshift':
+                    ascii_list = unshift(ascii_list, key, index)
                 elif step_name == 'xor_unshift':
                     ascii_list = xor_unshift(ascii_list, key, index)
                 elif step_name == 'unrotate':

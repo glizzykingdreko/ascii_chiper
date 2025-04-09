@@ -23,38 +23,67 @@ class KeyGenerator:
             seed = KeyGenerator.generate_seed()
         self.seed = seed
 
-    def _xorshift_generator(self, key: int, shift: int) -> Any:
-        """Generate xorshift function."""
+    def _xorshift_generator(self, initial_key: int, initial_shift: int) -> Any:
+        """Generate xorshift function.
+        
+        Args:
+            initial_key: The initial key value for the generator
+            initial_shift: The initial shift value for the generator
+            
+        Returns:
+            A function that generates the next number in the sequence
+        """
         def inner_function():
-            nonlocal key, shift
-            temp_key = GeneratorHelper.int32(key)
-            temp_key ^= GeneratorHelper.int32(temp_key << 23)
-            temp_key ^= GeneratorHelper.int32(temp_key >> 17)
-            temp_key ^= GeneratorHelper.int32(shift)
-            temp_key ^= GeneratorHelper.int32(shift >> 26)
-            key, shift = shift, temp_key
-            return (key + shift) % 0x100000000 
+            nonlocal initial_key, initial_shift
+            
+            # Convert to signed 32-bit integers (like JavaScript)
+            current_key = initial_key & 0xFFFFFFFF
+            if current_key & 0x80000000:
+                current_key = current_key - 0x100000000
+            
+            current_shift = initial_shift & 0xFFFFFFFF
+            if current_shift & 0x80000000:
+                current_shift = current_shift - 0x100000000
+
+            # Store shift value for later use
+            shift_value = current_shift
+            # Start with the current key value
+            result_value = current_key
+
+            # Perform operations maintaining signed 32-bit arithmetic
+            result_value = (result_value ^ ((result_value << 23) & 0xFFFFFFFF)) & 0xFFFFFFFF
+            if result_value & 0x80000000:
+                result_value = result_value - 0x100000000
+
+            result_value = (result_value ^ ((result_value >> 17) & 0xFFFFFFFF)) & 0xFFFFFFFF
+            if result_value & 0x80000000:
+                result_value = result_value - 0x100000000
+
+            result_value = (result_value ^ shift_value) & 0xFFFFFFFF
+            if result_value & 0x80000000:
+                result_value = result_value - 0x100000000
+
+            result_value = (result_value ^ ((shift_value >> 26) & 0xFFFFFFFF)) & 0xFFFFFFFF
+            if result_value & 0x80000000:
+                result_value = result_value - 0x100000000
+
+            # Update state for next iteration
+            initial_shift = result_value
+            initial_key = shift_value
+
+            # Calculate final value
+            final_value = (shift_value + result_value) & 0xFFFFFFFF
+            if final_value & 0x80000000:
+                final_value = final_value - 0x100000000
+            return final_value & 0xFFFFFFFF
         return inner_function
 
-    def create_key(self, base: int, length: int=12) -> List[int]:
-        """Create key for encryption and decryption.
-
-        Args:
-            base (int): Base for key generation.
-            length (int): Length of key. Default is 12.
-
-        Returns:
-            List[int]: Key for encryption and decryption.
-        
-        Raises:
-            InvalidSeedInputException: If invalid seed input.
-        """
+    def create_key(self, base: int, length: int = 12) -> List[int]:
         try:
             xorshift = self._xorshift_generator(base, self.seed)
-            return [xorshift() & 255 for _ in range(length)]
+            return [xorshift() & 0xFF for _ in range(length)]
         except Exception:
             raise InvalidSeedInputException("Invalid seed input")
-
 if __name__ == '__main__':
     expected = [14, 236, 95, 36, 157, 37, 161, 162, 255, 38, 205, 36]
     keygen = KeyGenerator(123123123)

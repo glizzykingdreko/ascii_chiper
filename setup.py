@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="ascii_chiper",
-    version="0.1.4",
+    version="0.2.0",
     author="glizzykingdreko",
     author_email="glizzykingdreko@protonmail.com",
     description="A versatile Python module for encrypting and decrypting strings, integers, and dictionaries using a variety of encryption techniques.",
